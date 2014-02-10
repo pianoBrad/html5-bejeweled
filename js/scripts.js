@@ -92,7 +92,6 @@ var get_jewel_attributes = function(jewel) {
 	return jewel_attributes;
 }
 
-var check_jewel_for_matches = function( jewel ) {}
 
 var check_board_for_matches = function () {
 	console.log('check board for matches called..');
@@ -207,6 +206,7 @@ var check_board_for_matches = function () {
 	return jewel_matches;
 }
 
+
 var move_jewels_in_dom = function(jewel_one, jewel_two) {
 	//All this variable does is ensure that the trigger & animations only fire once per function call
 	//var toggle = true;
@@ -237,6 +237,7 @@ var move_jewels_in_dom = function(jewel_one, jewel_two) {
 	jewel_two[0].object.trigger('color-attribute-changed');
 
 }
+
 
 var swap_jewels = function( jewel_one, jewel_two ) {
 	console.log('swap jewels called..');
@@ -294,6 +295,7 @@ var swap_jewels = function( jewel_one, jewel_two ) {
 
 }
 
+
 var select_jewel = function(jewel) {
 	if ( selected_jewel == "" ) {
 		//first jewel clicked
@@ -312,6 +314,7 @@ var select_jewel = function(jewel) {
 	}
 }
 
+
 var start_game = function() {
 
 	$(document).on( "click", ".jewel", function() { 
@@ -319,6 +322,7 @@ var start_game = function() {
 		select_jewel( game_board[$(this).attr('data-tile')] );
 	});
 }
+
 
 var unmatch_board = function(matches_found) {
 	//To unmatch, just look for the 3rd match of the series & change that color..the 3rd element in any series changed will always disrupt the matches
@@ -404,6 +408,9 @@ var drop_column = function(matches, columns) {
 			var j = 1;
 			//Go through each jewel in the current column that's equal to the match or higher 
 			//& perform the animation/drop sequence
+
+			var k = 0;
+
 			while ( j <= column_selector.children().children().length ) {
 				var this_jewel = column_selector.find("[data-order='"+j+"']").children('.jewel');
 				//Now we're iterating through each jewel in the current column that contains the match, going from bottom to top
@@ -434,7 +441,20 @@ var drop_column = function(matches, columns) {
 					}
 
 
-					this_jewel.transition({ y: "0px" });
+					this_jewel.transition({ 
+						y: "0px",
+						complete: function() { 
+							//this function fires the check-board event to run through 
+							//& clear any new matches created by the random drop-ins
+							k++;
+							total_animated = ( column_selector.children().children().length - (current_order - 1) ) * matches.length;
+							if ( k >= total_animated ) {
+								//$(document).trigger('check-board');
+							}
+							
+						}
+
+					});
 
 				}
 
@@ -449,39 +469,62 @@ var drop_column = function(matches, columns) {
 		//console.log(columns);
 		var column_selector = $('.game-board').find( "[data-column='"+columns+"']");
 		//console.log(column_selector);
+		var j = 1;
+		//variable k is here for the transition/animation event to track if all jewels have been moved
+		var k = 0;
 
-		column_selector.children().children().each(function() {
+		while ( j <= column_selector.children().children().length ) {
 			console.log(matches[match_length].order);
 			console.log($(this).parent().attr('data-order'));
-			if ( $(this).parent().attr('data-order') >= matches[match_length].order ) {
+			var this_jewel = column_selector.find("[data-order='"+j+"']").children('.jewel');
+
+			if ( this_jewel.parent().attr('data-order') >= matches[match_length].order ) {
 				//if this jewel is replacing an existing jewel above it, make that switch
 				//otherwise, assign it a random color before it drops down..
-				if ( parseInt($(this).parent().attr('data-order')) + matches.length <= 8 ) {
+				if ( parseInt( this_jewel.parent().attr('data-order') ) + matches.length <= 8 ) {
 					//jewel is replacing an existing jewel in the same column, above it
 					//console.log('this '+$(this).attr('data-color')+' jewel is at row '+parseInt($(this).parent().attr('data-order'))+', so it has a jewel above it will be replacing..');
-					var new_jewel_color = game_board[parseInt($(this).attr('data-tile')) - matches.length][0].color;
+					var new_jewel_color = game_board[parseInt( this_jewel.attr('data-tile') ) - matches.length][0].color;
 					//console.log('new jewel color is at index '+(parseInt($(this).attr('data-tile')) - matches.length)+' with color '+game_board[parseInt($(this).attr('data-tile')) - matches.length][0].color);
 
 					//Change the element in the dom & in the game_board array
-					game_board[ parseInt( $(this).attr('data-tile') ) ][0].color = new_jewel_color;
-					$(this).removeClass().addClass('jewel '+new_jewel_color).attr('data-color', new_jewel_color).transition({ y: (jewel_height * -matches.length)+"px" }, 0);	
+					game_board[ parseInt( this_jewel.attr('data-tile') ) ][0].color = new_jewel_color;
+					this_jewel.removeClass().addClass('jewel '+new_jewel_color).attr('data-color', new_jewel_color).transition({ y: (jewel_height * -matches.length)+"px" }, 0);	
 				} else {
 					//jewel will be raising above the viewable game board, appearing to drop in as a new randomly colored, jewel
 					shuffleArray(jewel_colors);
 					var jewel_color = jewel_colors[0];
 
 					//Change the element in the dom & in the game_board array
-					game_board[ parseInt( $(this).attr('data-tile') ) ][0].color = jewel_color;
-					$(this).removeClass().addClass('jewel '+jewel_color).attr('data-color', new_jewel_color).transition({ y: (jewel_height * -matches.length)+"px" }, 0);	
+					game_board[ parseInt( this_jewel.attr('data-tile') ) ][0].color = jewel_color;
+					this_jewel.removeClass().addClass('jewel '+jewel_color).attr('data-color', new_jewel_color).transition({ y: (jewel_height * -matches.length)+"px" }, 0);	
 				}
 
-				$(this).transition({ y: "0px" });
+				this_jewel.transition({ 
+					y: "0px", 
+					complete: function() { 
+						//this function fires the check-board event to run through 
+						//& clear any new matches created by the random drop-ins
+						/********************************************
+											TO-DO
+							- Need more efficient & reliable way 
+							  of determining when to fire this function
+						********************************************/
+						k++;
+						if ( k == column_selector.children().children().length - match_length ) {
+							//$(document).trigger('check-board');
+						} 
+					}  
+
+				});
 
 			}
 			
-		});
+			j++;	
+		};
 	}
 
+	
 	//console.log(game_board);
 }
 
@@ -546,8 +589,8 @@ $(document).ready(function() {
 		unmatch_board(matches_found);
 	}
 
-	$(document).on('color-attribute-changed', function() {
-		console.log('color change event fired');
+	$(document).on('color-attribute-changed check-board', function() {
+		console.log('color change/check board event fired');
 		$(document).off('transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd', '.jewel');
 		//this happens after the user has clicked 2 jewels & a swap animation has occured
 		matches_found = [];
