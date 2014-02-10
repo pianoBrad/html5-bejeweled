@@ -317,8 +317,9 @@ var select_jewel = function(jewel) {
 
 var start_game = function() {
 
-	$(document).on( "click", ".jewel", function() { 
+	$(document).on( "touchstart click", ".jewel", function(e) { 
 		//select_jewel( $(this) );
+		e.stopPropagation(); e.preventDefault();
 		select_jewel( game_board[$(this).attr('data-tile')] );
 	});
 }
