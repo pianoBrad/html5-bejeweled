@@ -391,12 +391,64 @@ var drop_column = function(matches, columns) {
 	if ( columns.length > 1 ) {
 		//horizontal match
 		//column_selecto
+		console.log('time to drop a horizontal match!');
+		var c = 0;
+
+		while ( c < matches.length ) {
+			//We're iterating through each column that contains a single jewel
+			var current_column = matches[c].column;
+			var column_selector = $('.game-board').find( "[data-column='"+current_column+"']");
+			var current_order = matches[c].order;
+			var current_index = matches[c].object.attr('data-tile');
+
+			var j = 1;
+			//Go through each jewel in the current column that's equal to the match or higher 
+			//& perform the animation/drop sequence
+			while ( j <= column_selector.children().children().length ) {
+				var this_jewel = column_selector.find("[data-order='"+j+"']").children('.jewel');
+				//Now we're iterating through each jewel in the current column that contains the match, going from bottom to top
+				//If this current jewel is equal to or higher than the current matching jewel, we include it in the animation sequence
+				if ( this_jewel.parent().attr('data-order') >= matches[c].order ) {
+					//This jewel needs to be animated up 1
+					//if this jewel is replacing an existing jewel above it, make that switch
+					//otherwise, assign it a random color before it drops down..
+					if ( parseInt(this_jewel.parent().attr('data-order')) + 1 <= 8 ) {
+						//console.log( this_jewel );
+						//console.log( parseInt(this_jewel.attr('data-tile')) );
+						//jewel is replacing an existing jewel in the same column, above it
+						var new_jewel_color = game_board[parseInt(this_jewel.attr('data-tile')) - 1][0].color;
+						//console.log(new_jewel_color);
+
+						game_board[ parseInt( this_jewel.attr('data-tile') ) ][0].color = new_jewel_color;
+						this_jewel.removeClass().addClass('jewel '+new_jewel_color).transition({ y: (jewel_height * -1)+"px" }, 0);
+
+						//game_board[ parseInt( $(this).attr('data-tile') ) ][0].color = new_jewel_color;
+					} else {
+						//jewel will be raising above the viewable game board, appearing to drop in as a new randomly colored jewel
+						shuffleArray(jewel_colors);
+						var jewel_color = jewel_colors[0];
+
+						//Change the element in the dom & in the game_board array
+						game_board[ parseInt( this_jewel.attr('data-tile') ) ][0].color = jewel_color;
+						this_jewel.removeClass().addClass('jewel '+jewel_color).transition({ y: (jewel_height * -matches.length)+"px" }, 0);
+					}
+
+
+					this_jewel.transition({ y: "0px" });
+
+				}
+
+				j++
+			};
+
+			c++;
+		}
 	} else {
 		//vertical match
 		//move all jewels equal to or higher than the lowest match
 		//console.log(columns);
 		var column_selector = $('.game-board').find( "[data-column='"+columns+"']");
-		console.log(column_selector);
+		//console.log(column_selector);
 
 		column_selector.children().children().each(function() {
 			console.log(matches[match_length].order);
@@ -406,13 +458,13 @@ var drop_column = function(matches, columns) {
 				//otherwise, assign it a random color before it drops down..
 				if ( parseInt($(this).parent().attr('data-order')) + matches.length <= 8 ) {
 					//jewel is replacing an existing jewel in the same column, above it
-					console.log('this '+$(this).attr('data-color')+' jewel is at row '+parseInt($(this).parent().attr('data-order'))+', so it has a jewel above it will be replacing..');
-					new_jewel_color = game_board[parseInt($(this).attr('data-tile')) - matches.length][0].color;
-					console.log('new jewel color is at index '+(parseInt($(this).attr('data-tile')) - matches.length)+' with color '+game_board[parseInt($(this).attr('data-tile')) - matches.length][0].color);
+					//console.log('this '+$(this).attr('data-color')+' jewel is at row '+parseInt($(this).parent().attr('data-order'))+', so it has a jewel above it will be replacing..');
+					var new_jewel_color = game_board[parseInt($(this).attr('data-tile')) - matches.length][0].color;
+					//console.log('new jewel color is at index '+(parseInt($(this).attr('data-tile')) - matches.length)+' with color '+game_board[parseInt($(this).attr('data-tile')) - matches.length][0].color);
 
 					//Change the element in the dom & in the game_board array
 					game_board[ parseInt( $(this).attr('data-tile') ) ][0].color = new_jewel_color;
-					$(this).removeClass().addClass('jewel '+new_jewel_color).transition({ y: (jewel_height * -matches.length)+"px" }, 0);	
+					$(this).removeClass().addClass('jewel '+new_jewel_color).attr('data-color', new_jewel_color).transition({ y: (jewel_height * -matches.length)+"px" }, 0);	
 				} else {
 					//jewel will be raising above the viewable game board, appearing to drop in as a new randomly colored, jewel
 					shuffleArray(jewel_colors);
@@ -420,7 +472,7 @@ var drop_column = function(matches, columns) {
 
 					//Change the element in the dom & in the game_board array
 					game_board[ parseInt( $(this).attr('data-tile') ) ][0].color = jewel_color;
-					$(this).removeClass().addClass('jewel '+jewel_color).transition({ y: (jewel_height * -matches.length)+"px" }, 0);	
+					$(this).removeClass().addClass('jewel '+jewel_color).attr('data-color', new_jewel_color).transition({ y: (jewel_height * -matches.length)+"px" }, 0);	
 				}
 
 				$(this).transition({ y: "0px" });

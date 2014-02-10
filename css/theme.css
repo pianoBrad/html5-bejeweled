@@ -36,11 +36,24 @@
 			Main Content Styles
 *****************************************/
 
+html, body { min-height: 100%; }
+
+body {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+}
+
+.content { 
+	height: 100%;
+}
+
 .game-board {
 	width: 100%;
 	background-color: #eeeeee;
 	overflow: hidden;
 	position: relative;
+	margin: 50px auto;
 }
 
 .game-board li {
