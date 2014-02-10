@@ -201,45 +201,40 @@ var check_board_for_matches = function () {
 		
 	});
 
+	//if ( jewel_vertical_matches.length > 0 ) { jewel_matches.push(jewel_vertical_matches); };
+	//if ( jewel_horizontal_matches.length > 0 ) { jewel_matches.push(jewel_horizontal_matches); };
+
 	return jewel_matches;
 }
 
 var move_jewels_in_dom = function(jewel_one, jewel_two) {
 	//All this variable does is ensure that the trigger & animations only fire once per function call
-	var toggle = true;
+	//var toggle = true;
 
 	console.log('move jewels in dom function fired..');
 	jewel_one[0].object.css('border','0px none');
 	jewel_two[0].object.css('border','0px none');
-	$(document).on('transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd', '.jewel', function() {
-		if ( toggle === true ) {
-			var jewel_one_color = jewel_one[0].color;
-			var jewel_two_color = jewel_two[0].color;
+	console.log('css transition event!!!!');
+	var jewel_one_color = jewel_one[0].color;
+	var jewel_two_color = jewel_two[0].color;
 
-			jewel_one[0].object.transition({ x: "0px", y: "0px" },0).attr('data-color',jewel_two[0].color).removeClass(jewel_one[0].color).addClass(jewel_two[0].color);
-			jewel_two[0].object.transition({ x: "0px", y: "0px" },0).attr('data-color',jewel_one[0].color).removeClass(jewel_two[0].color).addClass(jewel_one[0].color);
+	jewel_one[0].object.transition({ x: "0px", y: "0px" },0).attr('data-color',jewel_two[0].color).removeClass(jewel_one[0].color).addClass(jewel_two[0].color);
+	jewel_two[0].object.transition({ x: "0px", y: "0px" },0).attr('data-color',jewel_one[0].color).removeClass(jewel_two[0].color).addClass(jewel_one[0].color);
 
-			//change the array values to reflect the actual changes on screen
-			var m = 0;
-			while ( m <= game_board.length ) {
-				if ( jewel_one[0].object.attr( 'data-tile' ) == m ) {
-					game_board[m][0].color = jewel_two_color;
-					console.log('changed color in array to '+game_board[m][0].color);
-				} else if ( jewel_two[0].object.attr( 'data-tile' ) == m ) {
-					game_board[m][0].color = jewel_one_color;
-					console.log('changed color in array to '+game_board[m][0].color);
-				}
-				m++;
-			}
-
-			jewel_two[0].object.trigger('color-attribute-changed');
-
-			toggle = false;
-		} else {
-			toggle = true;
+	//change the array values to reflect the actual changes on screen
+	var m = 0;
+	while ( m <= game_board.length ) {
+		if ( jewel_one[0].object.attr( 'data-tile' ) == m ) {
+			game_board[m][0].color = jewel_two_color;
+			console.log('changed color in array to '+game_board[m][0].color);
+		} else if ( jewel_two[0].object.attr( 'data-tile' ) == m ) {
+			game_board[m][0].color = jewel_one_color;
+			console.log('changed color in array to '+game_board[m][0].color);
 		}
-	
-	});
+		m++;
+	}
+
+	jewel_two[0].object.trigger('color-attribute-changed');
 
 }
 
@@ -255,16 +250,16 @@ var swap_jewels = function( jewel_one, jewel_two ) {
 			//console.log(jewel_one[0].object);
 			//jewel_one[0].object.css('top',jewel_height+'px');
 			jewel_one[0].object.transition({ y: jewel_height+"px" });
-			jewel_two[0].object.transition({ y: "-"+jewel_height+"px" });
+			jewel_two[0].object.transition({ y: "-"+jewel_height+"px", complete: function() { move_jewels_in_dom(jewel_one, jewel_two); }} );
 
-			move_jewels_in_dom(jewel_one, jewel_two);
+			//move_jewels_in_dom(jewel_one, jewel_two);
 			
 		} else {
 			//jewel 1 is below jewel 2
 			jewel_one[0].object.transition({ y: "-"+jewel_height+"px" });
-			jewel_two[0].object.transition({ y: jewel_height+"px" });
+			jewel_two[0].object.transition({ y: jewel_height+"px", complete: function() { move_jewels_in_dom(jewel_one, jewel_two); }});
 
-			move_jewels_in_dom(jewel_one, jewel_two);
+			//move_jewels_in_dom(jewel_one, jewel_two);
 		}
 		console.log('the jewels are vertical neighbors');
 
@@ -275,15 +270,15 @@ var swap_jewels = function( jewel_one, jewel_two ) {
 			//jewel 1 is right of jewel 2
 			console.log(jewel_one[0].object);
 			jewel_one[0].object.transition({ x: "-"+jewel_width+"px" });
-			jewel_two[0].object.transition({ x: jewel_width+"px" });
+			jewel_two[0].object.transition({ x: jewel_width+"px", complete: function() { move_jewels_in_dom(jewel_one, jewel_two); } });
 
-			move_jewels_in_dom(jewel_one, jewel_two);
+			//move_jewels_in_dom(jewel_one, jewel_two);
 		} else {
 			//jewel 1 is left of jewel 2
 			jewel_one[0].object.transition({ x: jewel_width+"px" });
-			jewel_two[0].object.transition({ x: "-"+jewel_width+"px" });
+			jewel_two[0].object.transition({ x: "-"+jewel_width+"px", complete: function() { move_jewels_in_dom(jewel_one, jewel_two); } });
 
-			move_jewels_in_dom(jewel_one, jewel_two);
+			//move_jewels_in_dom(jewel_one, jewel_two);
 		}
 		console.log('the jewels are horizontal neighbors');
 
@@ -329,6 +324,7 @@ var unmatch_board = function(matches_found) {
 	//To unmatch, just look for the 3rd match of the series & change that color..the 3rd element in any series changed will always disrupt the matches
 	//console.log('unmatch board called..');
 	var m = 0;
+	//console.log(matches_found);
 
 	while ( m < matches_found.length ) {
 		console.log('the match is for color '+matches_found[m][0].color);
@@ -384,82 +380,99 @@ var move_row_in_dom = function(jewels_to_move, num_rows) {
 }
 
 
-var drop_columns = function( columns ) {
-	console.log('drop columns now');
-	var c = 0;
-	while ( c < columns.length ) {
-		console.log('checking column '+columns[c]);
+var drop_column = function(matches, columns) {
+	console.log('drop_column function called..');
+	console.log(matches);
+	console.log(columns);
 
-		$( 'ul.column' ).each(function() {
-			if ( $(this).attr('data-column') == columns[c] ) {
-				//We need to adjust the jewels in this column (move 'em down)
-				//find the first empty container in the column
-				var r = 8;
-				var total_empty = [];
-				while ( r > 0 ) {
-					if ( $( this ).find("[data-order='"+r+"']").children('.jewel-wrap .jewel').length == 0 ) {
-						//there is no jewel here
-						console.log( r );
-						total_empty.push(r);
-					};
-					r--;
+	var match_length = matches.length - 1;
+	var jewel_height = $('.column .jewel-wrap').outerHeight();
+
+	if ( columns.length > 1 ) {
+		//horizontal match
+		//column_selecto
+	} else {
+		//vertical match
+		//move all jewels equal to or higher than the lowest match
+		//console.log(columns);
+		var column_selector = $('.game-board').find( "[data-column='"+columns+"']");
+		console.log(column_selector);
+
+		column_selector.children().children().each(function() {
+			console.log(matches[match_length].order);
+			console.log($(this).parent().attr('data-order'));
+			if ( $(this).parent().attr('data-order') >= matches[match_length].order ) {
+				//if this jewel is replacing an existing jewel above it, make that switch
+				//otherwise, assign it a random color before it drops down..
+				if ( parseInt($(this).parent().attr('data-order')) + matches.length <= 8 ) {
+					//jewel is replacing an existing jewel in the same column, above it
+					console.log('this '+$(this).attr('data-color')+' jewel is at row '+parseInt($(this).parent().attr('data-order'))+', so it has a jewel above it will be replacing..');
+					new_jewel_color = game_board[parseInt($(this).attr('data-tile')) - matches.length][0].color;
+					console.log('new jewel color is at index '+(parseInt($(this).attr('data-tile')) - matches.length)+' with color '+game_board[parseInt($(this).attr('data-tile')) - matches.length][0].color);
+
+					//Change the element in the dom & in the game_board array
+					game_board[ parseInt( $(this).attr('data-tile') ) ][0].color = new_jewel_color;
+					$(this).removeClass().addClass('jewel '+new_jewel_color).transition({ y: (jewel_height * -matches.length)+"px" }, 0);	
+				} else {
+					//jewel will be raising above the viewable game board, appearing to drop in as a new randomly colored, jewel
+					shuffleArray(jewel_colors);
+					var jewel_color = jewel_colors[0];
+
+					//Change the element in the dom & in the game_board array
+					game_board[ parseInt( $(this).attr('data-tile') ) ][0].color = jewel_color;
+					$(this).removeClass().addClass('jewel '+jewel_color).transition({ y: (jewel_height * -matches.length)+"px" }, 0);	
 				}
-				console.log("there are "+total_empty.length+" open spots in column "+columns[c]);
-				console.log("the first open spot in column "+columns[c]+" is in row "+total_empty[0]);
 
-				//move each row above the highest empty row down
-				r = total_empty[0] + 1;
-				rows = total_empty.length;
-				var jewel_height = $('.jewel-wrap').outerHeight();
-				var jewels_to_move = [];
-				last_jewel_to_move = $( this ).find("[data-order='8']").children('.jewel-wrap .jewel');
+				$(this).transition({ y: "0px" });
 
-				while( r <= 8 ) {
-					jewel_to_move = $( this ).find("[data-order='"+r+"']").children('.jewel-wrap .jewel');
-					jewels_to_move.push(jewel_to_move);
-					jewel_to_move.transition({ y: (jewel_height * rows)+"px" });
-					//move the jewel in the dom
-					
-
-					r++;
-				}
-
-				$(document).on('transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd', last_jewel_to_move, function() {
-					move_row_in_dom( jewels_to_move, total_empty.length );		
-				});
-			} 
+			}
+			
 		});
+	}
 
-		c++;
-	};
+	//console.log(game_board);
 }
 
-var num_matches_in_column = function(column) {
-
-	$(column).children().children().each(function() {
-		console.log(this);
-	})
-
-}
 
 var clear_matches = function(matches) {
 	var m = 0;
 	var columns = [];
 
 	console.log('clear matches now..');
+	console.log(matches.length);
 
-	while ( m < matches[0].length ) {
-		var jewel_position_in_board = parseInt( $( matches[0][m].object ).attr('data-tile') );
-		var vertical_match = [];
-		var horizontal_match = [];
-		console.log( matches[0].length );
-		console.log( matches[0][m].object );
+	while ( m < matches.length ) {
+		//We're inside one matching group of jewels
 
-		//determine the first & last matches in each column, for each set of matches
+		var match_length = matches[m].length;
+		//console.log(matches[m].length);
 
-		//if the matches are vertical
-		if ( m > 0 && matches[0][m].color == matches[0][m-1].color ) {
+		var n = 0;
 
+		while ( n < matches[m].length ) {
+			//We're iterating through each jewel within this particular matched set
+			var jewel_position_in_board = parseInt( $( matches[m][n].object ).attr('data-tile') );
+			//console.log( matches[m].length );
+			//console.log( matches[m][n].object );
+
+			if ( n == 1 && matches[m][n].column == matches[m][n - 1].column ) {
+				//This is a vertical match
+				//Drop the single column
+				drop_column( matches[m], matches[m][n].column );
+
+			} else if ( n == 1 && matches[m][n].column != matches[m][n - 1].column ) {
+				//This is a horizontal match
+				h = 0;
+				var horizontal_columns = [];
+				while ( h < matches[m].length ) {
+					horizontal_columns.push( matches[m][h].column );
+					h++;
+				}
+
+				drop_column( matches[m], horizontal_columns );
+			}
+
+			n++;
 		}
 
 		m++;
